@@ -19,21 +19,41 @@ CREATE TABLE role (
 );
 
 CREATE TABLE employee (
-  id INT,
+  id INT NOT NULL AUTO_INCREMENT,
   first_name VARCHAR(30) NOT NULL,
   last_name VARCHAR(30) NOT NULL,
-  role_id VARCHAR(30) NOT NULL,
-  manager_id INT, 
+  role_id INT NOT NULL,
+  manager_id INT , 
+  PRIMARY KEY (id),
   FOREIGN KEY (role_id) REFERENCES role(id),
   FOREIGN KEY (manager_id) REFERENCES employee(id)
-  ON DELETE SET NULL
 );
 
+
 INSERT INTO department(name)
-VALUES ("spinach"),
-       ("peanut butter"),
-       ("peas-canned"),
-       ("ice cream"),
-       ("potato chips");
-       
+VALUES ("sales"),
+      ("engineering"),
+       ("finance"),
+       ("legal");
 SELECT * FROM department;
+
+
+INSERT INTO role(title, salary,department_id)
+VALUES ("salesperson",80.000,1),
+       ("lead engineer", 150.000,2),
+       ("software engineer", 120.000,2),
+       ("accountant", 125.000,3),
+       ("account manager", 160.000,3),
+       ("legal team lead",250.000,4),
+       ("lawyer",190.000,4);
+       
+SELECT * FROM role;
+
+INSERT INTO employee(first_name, last_name,role_id,manager_id)
+VALUES ("John","Doe",1,NULL),
+       ("Jason","Born",6,NULL),
+       ("The","Rock",7,2),
+       ("Dwayne","Johnson",5,NULL),
+       ("Mike","Wazowski",4,4);
+       
+SELECT * FROM employee;

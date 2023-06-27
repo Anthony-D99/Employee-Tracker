@@ -17,9 +17,17 @@ inquirer.prompt([
 
    if (result.choices === 'view all departments') {
       viewDepartments()
-   } else if (result.shape === '') {
+   } else if (result.choices === 'view all roles') {
+      viewRoles()
+   } else if(result.choices === 'view all employees'){
+      viewEmployees()
+   }else if(result.choices === 'add a department'){
 
-   } else {
+   }else if(result.choices === 'add a role'){
+      
+   }else if(result.choices === 'add an employee'){
+      
+   }else{
 
    }
 
@@ -38,5 +46,25 @@ function viewDepartments(){
       init()
    })
 }
+function viewRoles(){
+   connection.query('SELECT * FROM role', (err, res)=>{
+      if(err){
+         throw err
+      }
+      console.table(res)
+      init()
+   })
+}
+function viewEmployees(){
+   connection.query('SELECT * FROM employee', (err, res)=>{
+      if(err){
+         throw err
+      }
+      console.table(res)
+      init()
+   })
+}
+
+
 
 init()
