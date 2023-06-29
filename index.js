@@ -85,7 +85,11 @@ function addDepartment() {
 }
 
 function addRole() {
-   inquirer.prompt([
+   connection.query('SELECT * FROM department', (err, res) => {
+      if (err) {
+         throw err
+      }
+      inquirer.prompt([
       {
          type: 'text',
          name: 'role',
@@ -97,12 +101,15 @@ function addRole() {
          message: 'What is the salary of the role?'
       },
       {
-         type: 'number',
+         type: 'list',
          name: 'department',
-         message: 'What is the department number for this role?'
+         message: 'What department is this role assigned to?',
+         choices: res.map(department => `${department.name}  (department id: ${department.id})`)
       },
    ]).then(result => {
-      connection.query(`INSERT INTO role(title, salary,department_id) VALUES ('${result.role}',${result.salary},${result.department})`, (err, res) => {
+      const departmentid = result.department.split("id: ")[1].replace(")", "")
+
+      connection.query(`INSERT INTO role(title, salary,department_id) VALUES ('${result.role}',${result.salary},${departmentid})`, (err, res) => {
          if (err) {
             throw err
          }
@@ -110,14 +117,20 @@ function addRole() {
          init()
       })
    })
+   })
+   
 }
 
 function addEmployee() {
+   connection.query('SELECT title, role.id, manager_id, employee.id FROM role, employee ', (err, res) => {
+      if (err) {
+         throw err
+      }
    inquirer.prompt([
       {
          type: 'text',
          name: 'firstName',
-         message: "What is the emmployee's first name?"
+         message: "What is the employee's first name?"
       },
       {
          type: 'text',
@@ -125,17 +138,22 @@ function addEmployee() {
          message: "What is the employee's last name?"
       },
       {
-         type: 'number',
+         type: 'list',
          name: 'role',
-         message: "What is the employee's role id number?"
+         message: "What is the employee's role?",
+         choices: res.map(role => `${role.title} (role id: ${role.id})`)
       },
       {
-         type: 'text',
+         type: 'list',
          name: 'manager',
-         message: "What is the employee's manager id number?(Type NULL if none)"
+         message: "Who is the employee's manager?",
+         choices: res.map(employee => `${employee.manager_id} ( employee id: ${employee.id})`)
       },
    ]).then(result => {
-      connection.query(`INSERT INTO employee(first_name, last_name,role_id,manager_id) VALUES ('${result.firstName}','${result.lastName}',${result.role},${result.manager})`, (err, res) => {
+      const roleid = result.role.split("id: ")[1].replace(")", "")
+      const managerid = result.manager.split("id: ")[1].replace(")", "")
+
+      connection.query(`INSERT INTO employee(first_name, last_name,role_id,manager_id) VALUES ('${result.firstName}','${result.lastName}',${roleid},${managerid})`, (err, res) => {
          if (err) {
             throw err
          }
@@ -143,43 +161,44 @@ function addEmployee() {
          init()
       })
    })
+})
 }
 
 function updateRole() {
-   
-      connection.query('SELECT title, first_name, last_name, employee.id, role.id FROM role, employee WHERE role.id = role_id', (err, res) => {
-         if (err) {
-            throw err
-         }
-         inquirer.prompt([
-            {
-               type: 'list',
-               name: 'employee',
-               message: "What is the employee's name?",
-               choices: res.map(employee => `${employee.first_name} ${employee.last_name} (employee id: ${employee.id})`)
-            },
-            {
-               type: 'list',
-               name: 'role',
-               message: "What is the role you would like to assign to the selected employee?",
-               choices: res.map(role => `${role.title} (role id: ${role.id})`)
-            },
-         ]).then(result => {
-            const employeeid = result.employee.split("id: ")[1].replace(")", "")
-            const roleid = result.role.split("id: ")[1].replace(")", "")
 
-            connection.query(`UPDATE employee SET role_id = ${roleid} WHERE id = ${employeeid}`, (err, res) => {
-               if (err) {
-                  throw err
-               }
-               console.log(`Updated ${result.employee} role to ${result.role}`)
-               init()
-            })
+   connection.query('SELECT title, first_name, last_name, employee.id, role.id FROM role, employee WHERE role.id = role_id', (err, res) => {
+      if (err) {
+         throw err
+      }
+      inquirer.prompt([
+         {
+            type: 'list',
+            name: 'employee',
+            message: "What is the employee's name?",
+            choices: res.map(employee => `${employee.first_name} ${employee.last_name} (employee id: ${employee.id})`)
+         },
+         {
+            type: 'list',
+            name: 'role',
+            message: "What is the role you would like to assign to the selected employee?",
+            choices: res.map(role => `${role.title} (role id: ${role.id})`)
+         },
+      ]).then(result => {
+         const employeeid = result.employee.split("id: ")[1].replace(")", "")
+         const roleid = result.role.split("id: ")[1].replace(")", "")
+
+         connection.query(`UPDATE employee SET role_id = ${roleid} WHERE id = ${employeeid}`, (err, res) => {
+            if (err) {
+               throw err
+            }
+            console.log(`Updated ${result.employee} role to ${result.role}`)
+            init()
          })
-      
-})
+      })
 
-   
+   })
+
+
 
 }
 

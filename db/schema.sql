@@ -23,7 +23,7 @@ CREATE TABLE employee (
   first_name VARCHAR(30) NOT NULL,
   last_name VARCHAR(30) NOT NULL,
   role_id INT NOT NULL,
-  manager_id INT , 
+  manager_id INT, 
   PRIMARY KEY (id),
   FOREIGN KEY (role_id) REFERENCES role(id),
   FOREIGN KEY (manager_id) REFERENCES employee(id)
@@ -40,6 +40,7 @@ SELECT * FROM department;
 
 INSERT INTO role(title, salary,department_id)
 VALUES ("salesperson",80.000,1),
+       ("lead sales",110.000,1) 
        ("lead engineer", 150.000,2),
        ("software engineer", 120.000,2),
        ("accountant", 125.000,3),
@@ -50,10 +51,13 @@ VALUES ("salesperson",80.000,1),
 SELECT * FROM role;
 
 INSERT INTO employee(first_name, last_name,role_id,manager_id)
-VALUES ("John","Doe",1,NULL),
+VALUES ("John","Doe",1,2),
+       ("Jane","Doe",2,NULL),
+       ("Samuri","Jack",3,NULL)
+       ("Ash","Ketchup",4,3) 
        ("Jason","Born",6,NULL),
-       ("The","Rock",7,2),
-       ("Dwayne","Johnson",5,NULL),
-       ("Mike","Wazowski",4,4);
+       ("The","Rock",5,6),
+       ("Dwayne","Johnson",7,NULL),
+       ("Mike","Wazowski",8,7);
        
 SELECT * FROM employee;
