@@ -145,27 +145,42 @@ function addEmployee() {
    })
 }
 
-function updateRole(){
-   inquirer.prompt([
-      {
-         type: 'number',
-         name:'employee',
-         message:"What is the employee's id number?"
-      },
-      {
-         type: 'number',
-         name:'role',
-         message:"What is the role id you would like to assign to the selected employee?"
-      }
-   ]).then(result =>{
-      connection.query(`UPDATE employee SET role_id = ${result.role} WHERE id = ${result.employee}`, (err, res) => {
+function updateRole() {
+   
+      connection.query('SELECT title, first_name, last_name, employee.id, role.id FROM role, employee WHERE role.id = role_id', (err, res) => {
          if (err) {
             throw err
          }
-         console.log(`Updated ${result.employee} role to ${result.role}`)
-         init()
-   })
+         inquirer.prompt([
+            {
+               type: 'list',
+               name: 'employee',
+               message: "What is the employee's name?",
+               choices: res.map(employee => `${employee.first_name} ${employee.last_name} (employee id: ${employee.id})`)
+            },
+            {
+               type: 'list',
+               name: 'role',
+               message: "What is the role you would like to assign to the selected employee?",
+               choices: res.map(role => `${role.title} (role id: ${role.id})`)
+            },
+         ]).then(result => {
+            const employeeid = result.employee.split("id: ")[1].replace(")", "")
+            const roleid = result.role.split("id: ")[1].replace(")", "")
+
+            connection.query(`UPDATE employee SET role_id = ${roleid} WHERE id = ${employeeid}`, (err, res) => {
+               if (err) {
+                  throw err
+               }
+               console.log(`Updated ${result.employee} role to ${result.role}`)
+               init()
+            })
+         })
+      
 })
+
+   
+
 }
 
 
