@@ -1,5 +1,4 @@
 const inquirer = require('inquirer')
-const fs = require('fs')
 const connection = require('./config/connection')
 
 
@@ -90,42 +89,38 @@ function addRole() {
          throw err
       }
       inquirer.prompt([
-      {
-         type: 'text',
-         name: 'role',
-         message: 'What is the name of the role?',
-      },
-      {
-         type: 'number',
-         name: 'salary',
-         message: 'What is the salary of the role?'
-      },
-      {
-         type: 'list',
-         name: 'department',
-         message: 'What department is this role assigned to?',
-         choices: res.map(department => `${department.name}  (department id: ${department.id})`)
-      },
-   ]).then(result => {
-      const departmentid = result.department.split("id: ")[1].replace(")", "")
+         {
+            type: 'text',
+            name: 'role',
+            message: 'What is the name of the role?',
+         },
+         {
+            type: 'number',
+            name: 'salary',
+            message: 'What is the salary of the role?'
+         },
+         {
+            type: 'list',
+            name: 'department',
+            message: 'What department is this role assigned to?',
+            choices: res.map(department => `${department.name}  (department id: ${department.id})`)
+         },
+      ]).then(result => {
+         const departmentid = result.department.split("id: ")[1].replace(")", "")
 
-      connection.query(`INSERT INTO role(title, salary,department_id) VALUES ('${result.role}',${result.salary},${departmentid})`, (err, res) => {
-         if (err) {
-            throw err
-         }
-         console.log(`Added ${result.role} to the database`)
-         init()
+         connection.query(`INSERT INTO role(title, salary,department_id) VALUES ('${result.role}',${result.salary},${departmentid})`, (err, res) => {
+            if (err) {
+               throw err
+            }
+            console.log(`Added ${result.role} to the database`)
+            init()
+         })
       })
    })
-   })
-   
-}
 
+}
 function addEmployee() {
-   connection.query('SELECT title, role.id, manager_id, employee.id FROM role, employee ', (err, res) => {
-      if (err) {
-         throw err
-      }
+
    inquirer.prompt([
       {
          type: 'text',
@@ -136,34 +131,56 @@ function addEmployee() {
          type: 'text',
          name: 'lastName',
          message: "What is the employee's last name?"
-      },
-      {
-         type: 'list',
-         name: 'role',
-         message: "What is the employee's role?",
-         choices: res.map(role => `${role.title} (role id: ${role.id})`)
-      },
-      {
-         type: 'list',
-         name: 'manager',
-         message: "Who is the employee's manager?",
-         choices: res.map(employee => `${employee.manager_id} ( employee id: ${employee.id})`)
-      },
-   ]).then(result => {
-      const roleid = result.role.split("id: ")[1].replace(")", "")
-      const managerid = result.manager.split("id: ")[1].replace(")", "")
+      }
+   ]).then(res => {
+      let firstName = res.firstName;
+      let lastName = res.lastName
+      connection.promise().query('SELECT * FROM role')
+         .then(([res]) => {
+            const choices = res.map(({ id, title }) => {
+               return { name: `${title} (role id: ${id})` }
+            })
+            inquirer.prompt([
+               {
+                  type: "list",
+                  name: "role",
+                  message: "Select a role for employee",
+                  choices: choices
+               }
+            ])
+               .then(res => {
+                  const role = res.role.split("id: ")[1].replace(")", "")
+                  connection.promise().query('SELECT ALL id, first_name, last_name  FROM employee WHERE role_id = 2 OR role_id=3 OR role_id=6 OR role_id=7')
+                     .then(([res]) => {
+                        const managerArr = res.map(({ id, first_name, last_name, manager_id }) => {
+                           return { name: `${first_name} ${last_name} ( employee id: ${id})` }
+                        })
+                        managerArr.unshift({ name: "No Manager ( employee id: null)" })
+                        inquirer.prompt({
+                           type: "list",
+                           name: "manager",
+                           message: "Choose manager for employee",
+                           choices: managerArr
+                        }).then(res => {
+                           const managerArr = res.manager.split("id: ")[1].replace(")", "")
 
-      connection.query(`INSERT INTO employee(first_name, last_name,role_id,manager_id) VALUES ('${result.firstName}','${result.lastName}',${roleid},${managerid})`, (err, res) => {
-         if (err) {
-            throw err
-         }
-         console.log(`Added ${result.firstName} ${result.lastName} to the database`)
-         init()
-      })
-   })
-})
+
+
+                           connection.query(`INSERT INTO employee(first_name, last_name,role_id,manager_id) VALUES ('${firstName}','${lastName}',${role},${managerArr})`, (err, res) => {
+                              if (err) {
+                                 throw err
+                              }
+                              console.log(`Added ${firstName} ${lastName} to the database`)
+                              init()
+                           })
+                        })
+                     })
+               })
+         })
+   }
+
+   )
 }
-
 function updateRole() {
 
    connection.query('SELECT title, first_name, last_name, employee.id, role.id FROM role, employee WHERE role.id = role_id', (err, res) => {
