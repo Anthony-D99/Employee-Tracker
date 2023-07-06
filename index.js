@@ -77,7 +77,7 @@ function addDepartment() {
          if (err) {
             throw err
          }
-         console.log(`Added ${result.name} to the database`)
+         console.log(`Added ${result.department} to the database`)
          init()
       })
    })
@@ -150,7 +150,7 @@ function addEmployee() {
             ])
                .then(res => {
                   const role = res.role.split("id: ")[1].replace(")", "")
-                  connection.promise().query('SELECT ALL id, first_name, last_name  FROM employee WHERE role_id = 2 OR role_id=3 OR role_id=6 OR role_id=7')
+                  connection.promise().query('SELECT * FROM employee WHERE manager_id IS NULL;')
                      .then(([res]) => {
                         const managerArr = res.map(({ id, first_name, last_name, manager_id }) => {
                            return { name: `${first_name} ${last_name} ( employee id: ${id})` }
